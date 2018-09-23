@@ -17,7 +17,7 @@ const setTimeoutInterval = function(key, rule){
 	setTimeout(()=>{clearBucket(key)}, multiplier[unit.indexOf(rule.unit)]*rule.expiry)
 }
 
-clearBucket = function(key){
+const clearBucket = function(key){
 	//used with setInterval
 	console.log("storage expiring! ", key)
 	delete storage[key]

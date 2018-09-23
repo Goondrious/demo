@@ -278,7 +278,7 @@ class HomePage extends Component {
 			  	<Segment
 					inverted
 					textAlign='center'
-					style={{ minHeight: 800, padding: '1em 0em', zIndex: 1000 }}
+					style={{ minHeight: '100vh', padding: '1em 0em', zIndex: 1000 }}
 					vertical
 			  	>
 			  		<HomepageHeading getStarted={ this.getStarted}/>
@@ -372,8 +372,8 @@ class HomePage extends Component {
 		      {!tableLoaded && !statHourlyError &&<Header textAlign="center" as='h1'><Icon loading name='spinner' /></Header>}
 		      {tableLoaded && 
 		      	<div><Input placeholder="Search location..." onChange={this.fuzzySearch} />
-		      	<DetailedTable handleSort={this.handleSort} column={column} direction={direction} headers={tableHeaders} data={tableData[activePage-1]} />
 		      	<Pagination onPageChange={this.changePage} activePage={activePage} totalPages={tableData.length} /></div>}
+		      	<DetailedTable handleSort={this.handleSort} column={column} direction={direction} headers={tableHeaders} data={tableData[activePage-1]} />
 		      </Container>
 		    </Segment>
 		    <Segment inverted vertical style={{ padding: '5em 0em' }}>
