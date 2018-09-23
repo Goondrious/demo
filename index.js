@@ -2,6 +2,7 @@ const express = require('express')
 const pg = require('pg')
 require('dotenv').config()
 const app = express()
+const path = require('path')
 // configs come from standard PostgreSQL env vars
 // https://www.postgresql.org/docs/9.6/static/libpq-envars.html
 const pool = new pg.Pool({
@@ -11,6 +12,8 @@ const pool = new pg.Pool({
   password: process.env.PGPASSWORD,
   port: process.env.PGPORT
 })
+
+app.use("/", express.static(path.join(__dirname,`/client/build`)));
 
 var rateLimit = require('./lib/rate-limit')
 let rules = [
@@ -68,10 +71,6 @@ const queryHandler = (req, res, next) => {
     return res.json(r.rows || [])
   }).catch(next)
 }
-
-app.get('/', basicLimit,(req, res) => {
-  res.send('Welcome to EQ Works 😎')
-})
 
 //number of events at POI at a given hour
 app.get('/events/hourly', basicLimit,(req, res, next) => {
