@@ -430,10 +430,7 @@ class HomePage extends Component {
 							<Grid divided inverted stackable>
 								<Grid.Row>
 									<Grid.Column width={7}>
-										<Header inverted as='h4' content="Thanks for scrolling to the bottom, there's one more page:" />
-										<List link inverted>
-											<List.Item as='a' href="#map">Map</List.Item>
-										</List>
+										<Header inverted as='h4' content="Thanks for scrolling to the bottom, there's one more page with a map on it." />
 									</Grid.Column>
 									<Grid.Column width={7}>
 										<p>You came a long way, congrats!</p>
