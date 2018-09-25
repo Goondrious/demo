@@ -13,9 +13,12 @@ const pool = new pg.Pool({
   port: process.env.PGPORT
 })
 
+//use built React for front end
 app.use("/", express.static(path.join(__dirname,`/client/build`)));
 
+//import custom rate limiter
 var rateLimit = require('./lib/rate-limit')
+//define rules
 let rules = [
   {
     name: "basicSecondRule",
@@ -46,12 +49,15 @@ let rules = [
   }
 ]
 
+//store the rules for later use
 rateLimit.initRateLimit(rules)
 
+//define middleware for rate limiting and how to handle excessive requests
+// ret object contains boolean `limit` and if true, the error message defined above
 let basicLimit = (req,res,next) => {
     let ret = rateLimit.assignLimit(req.connection.remoteAddress, req.route.path, ["basicMinuteRule", "basicSecondRule"])
     if(ret.limit){
-        res.status(429).send(ret.msg)
+        res.status(429).send({msg: ret.msg})
     } else {
         next()
     }
@@ -60,7 +66,7 @@ let basicLimit = (req,res,next) => {
 let strictLimit = (req,res,next) => {
     let ret = rateLimit.assignLimit(req.connection.remoteAddress, req.route.path, ["strictMinuteRule"])
     if(ret.limit){
-        res.status(429).send(ret.msg)
+        res.status(429).send({msg: ret.msg})
     } else {
         next()
     }
@@ -72,7 +78,7 @@ const queryHandler = (req, res, next) => {
   }).catch(next)
 }
 
-//number of events at POI at a given hour
+//number of events at POI at date and start hour
 app.get('/events/hourly', basicLimit,(req, res, next) => {
   req.sqlQuery = `
     SELECT *
@@ -85,6 +91,7 @@ app.get('/events/hourly', basicLimit,(req, res, next) => {
   return next()
 }, queryHandler)
 
+//summary of hourly_events by date
 app.get('/events/daily', basicLimit,(req, res, next) => {
   req.sqlQuery = `
     SELECT date, SUM(events) AS events
@@ -96,9 +103,7 @@ app.get('/events/daily', basicLimit,(req, res, next) => {
   return next()
 }, queryHandler)
 
-//impressions, clicks, revenue at an hour and POI
-//does this match with number of events? not quite, stats have a higher resolution, events are less frequent
-//what is the hour value here? start time
+//impressions, clicks, revenue at POI at date and start hour
 app.get('/stats/hourly', strictLimit,(req, res, next) => {
   req.sqlQuery = `
     SELECT *
@@ -111,21 +116,7 @@ app.get('/stats/hourly', strictLimit,(req, res, next) => {
   return next()
 }, queryHandler)
 
-//where we can, combine stats and events, but treat missing [poi+date+hour] in either as 0s, though this might not be correct depending on the origins of these datasets
-app.get('/map', basicLimit,(req, res, next) => {
-  req.sqlQuery = `
-    SELECT COALESCE(c.date,b.date) AS date, COALESCE(c.hour,b.hour) AS hour, a.name, a.lon, a.lat, COALESCE(c.impressions,0) AS impressions, 
-      COALESCE(c.clicks,0) AS clicks, COALESCE(c.revenue,0) AS revenue, COALESCE(b.events,0) AS events
-    FROM public.hourly_events AS b
-    FULL JOIN public.hourly_stats AS c
-    ON c.poi_id = b.poi_id AND c.date = b.date AND c.hour = b.hour
-    INNER JOIN public.poi AS a
-    ON a.poi_id = b.poi_id OR a.poi_id = c.poi_id
-    LIMIT 168;
-  `
-  return next()
-}, queryHandler)
-
+//summary of hourly_stats by date
 app.get('/stats/daily', basicLimit,(req, res, next) => {
   req.sqlQuery = `
     SELECT date,
@@ -140,14 +131,18 @@ app.get('/stats/daily', basicLimit,(req, res, next) => {
   return next()
 }, queryHandler)
 
-app.get('/poi', basicLimit,(req, res, next) => {
-  console.log(req.connection.remoteAddress)
-  console.log(req.headers)
-  console.log(req.hostname)
-  console.log(req.origin)
+//pull events and stats together with POI information for mapping
+//where we can, combine stats and events, but treat missing [poi+date+hour] in either as 0s, though this might not be correct depending on the origins of these datasets
+app.get('/map', strictLimit,(req, res, next) => {
   req.sqlQuery = `
-    SELECT *
-    FROM public.poi;
+    SELECT COALESCE(c.date,b.date) AS date, COALESCE(c.hour,b.hour) AS hour, a.name, a.lon, a.lat, COALESCE(c.impressions,0) AS impressions, 
+      COALESCE(c.clicks,0) AS clicks, COALESCE(c.revenue,0) AS revenue, COALESCE(b.events,0) AS events
+    FROM public.hourly_events AS b
+    FULL JOIN public.hourly_stats AS c
+    ON c.poi_id = b.poi_id AND c.date = b.date AND c.hour = b.hour
+    INNER JOIN public.poi AS a
+    ON a.poi_id = b.poi_id OR a.poi_id = c.poi_id
+    LIMIT 168;
   `
   return next()
 }, queryHandler)

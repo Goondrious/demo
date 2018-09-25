@@ -1,14 +1,8 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import {
-  Button,
   Container,
-  Divider,
-  Grid,
-  Header,
   Icon,
-  Image,
-  List,
   Menu,
   Responsive,
   Segment,
@@ -16,15 +10,16 @@ import {
   Visibility,
 } from 'semantic-ui-react'
 
+//based largely off the SemanticUI home page template
+//presents DesktopContainer and MobileContainer, which have two different menus and visibility controls for each
+//added activeItem to show highlighting depending on which page you're on
 class DesktopContainer extends Component {
 
   constructor(props){
     super();
     let activeItem = ""
     window.location.hash.length>2 ? activeItem = window.location.hash.substring(2,window.location.hash.length) : null;
-    console.log(activeItem, window.location.hash)
     this.state = { activeItem: activeItem}
-
   }
 
   hideFixedMenu = () => this.setState({ fixed: false })
@@ -68,7 +63,6 @@ class DesktopContainer extends Component {
             </Menu>
           </Segment>
         </Visibility>
-
         {children}
       </Responsive>
     )
@@ -80,11 +74,15 @@ DesktopContainer.propTypes = {
 }
 
 class MobileContainer extends Component {
-  state = { activeItem: "home" }
+  constructor(props){
+    super();
+    let activeItem = ""
+    window.location.hash.length>2 ? activeItem = window.location.hash.substring(2,window.location.hash.length) : null;
+    this.state = { activeItem: activeItem}
+  }
 
   handlePusherClick = () => {
     const { sidebarOpened } = this.state
-
     if (sidebarOpened) this.setState({ sidebarOpened: false })
   }
 
@@ -103,7 +101,7 @@ class MobileContainer extends Component {
             <Menu.Item as='a' href="#" active={ activeItem === "home" } name="home" onClick={ this.handleMenuClick }>
               Home
             </Menu.Item>
-            <Menu.Item as='a' href="#thatPage" active={ activeItem === "map" } name="map" onClick={ this.handleMenuClick }>Map</Menu.Item>
+            <Menu.Item as='a' href="#map" active={ activeItem === "map" } name="map" onClick={ this.handleMenuClick }>Map</Menu.Item>
           </Sidebar>
 
           <Sidebar.Pusher
@@ -130,7 +128,6 @@ class MobileContainer extends Component {
                 </Menu>
               </Container>
             </Segment>
-
             {children}
           </Sidebar.Pusher>
         </Sidebar.Pushable>
@@ -143,6 +140,7 @@ MobileContainer.propTypes = {
   children: PropTypes.node,
 }
 
+//export both containers and {children} to contain our pages
 const ResponsiveContainer = ({ children }) => (
   <div>
     <DesktopContainer>{children}</DesktopContainer>
