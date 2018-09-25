@@ -3,9 +3,9 @@ import ReactMapboxGl, { ZoomControl, GeoJSONLayer } from "react-mapbox-gl";
 import { Grid, Segment, Header, Icon, Button, Input, Form, Message } from 'semantic-ui-react'
 import moment from 'moment';
 
-//white-list ip of server and/or obscure this key in backend api, requiring JWT to retrieve
+//white-list ip of server and obscure this key in backend api, requiring JWT to retrieve
 const Map = ReactMapboxGl({
-  accessToken: "pk.eyJ1IjoiZ29vbmRyaW91cyIsImEiOiJjam1jNjdlbWM1dmY1M2tvZzh3cmtnemd3In0.zoVjvWEcv3VW-7U2Y_7wRg"
+  accessToken: ""
 });
 
 //catch generic errors, handle 429 separately for custom message
